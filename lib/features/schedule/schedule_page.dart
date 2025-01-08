@@ -362,6 +362,12 @@ class _SchedulePageState extends State<SchedulePage> with SingleTickerProviderSt
   Widget _buildMeetingCard(Schedule schedule) {
     final isConfirmed = schedule.status == 'Confirmed';
     final isPending = schedule.status == 'Pending';
+    
+    // Calculate card height based on duration
+    final duration = schedule.endTime.difference(schedule.startTime);
+    final baseHeight = 120.0; // Minimum card height
+    final heightPerHour = 40.0; // Additional height per hour
+    final cardHeight = baseHeight + (duration.inHours * heightPerHour);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -369,8 +375,15 @@ class _SchedulePageState extends State<SchedulePage> with SingleTickerProviderSt
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Padding(
+      child: SizedBox(
+        height: cardHeight,
+      child: Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade200),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
