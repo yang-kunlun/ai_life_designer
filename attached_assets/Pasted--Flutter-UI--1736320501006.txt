@@ -1,0 +1,660 @@
+以下内容分为 **“设计方案文档”** 和 **“Flutter 代码示例”** 两部分，便于您先理解整体的页面结构和交互逻辑，再将代码分文件复制到您的项目中运行。示例中的 UI 参考了您提供的截图，采用**纵向时间轴**、**顶部日期切换**、**马卡龙/莫兰迪简洁配色**的设计风格，旨在呈现简洁、高级感的日程管理界面。
+
+---
+## 一、设计方案文档
+
+### 1. 整体交互与信息架构
+
+1. **主页面 (HomeScreen)**
+   - **顶部日期导航栏**：水平滚动显示本周或多周的日期卡片，每个卡片包含「星期 + 日期 + 进度或标记」。  
+     - 点击某个日期卡片，会刷新下方的日程列表，展示对应日期的所有任务/活动。  
+   - **纵向时间轴**：从上到下按时间顺序展示一天内的所有任务卡片，每个卡片包含：
+     - 开始时间、事件图标（如闹钟、跑步、娱乐等）、活动标题、副标题或附加信息（如消耗时间、参与人数、备注等）。
+     - 颜色或图标区分不同类型的活动（例如，跑步：暖色系；看电影：冷色系）。
+   - **浮动按钮 (FAB)**：右下角的 “+” 号，用于创建新的日程活动；点击后跳转到**新增/编辑页面 (AddTaskScreen)**。
+   - **右上角图标**：
+     - **切换视图/回到日历**：可点击查看更大范围的日历，或跳转到其他视图（如月视图）。
+     - **设置**：进入设置/配置页面(可在 MVP 阶段暂时不实现或仅做占位)。
+
+2. **新增/编辑页面 (AddTaskScreen)**
+   - 用于创建或编辑某个日程事件，包括：
+     - 标题、起止时间、标签/类型、备注描述等。
+     - 选择图标/颜色（如跑步、学习、娱乐）。
+   - 保存后返回主页面，并在纵向时间轴中显示最新的任务卡片。
+
+3. **设置页面 (SettingsScreen) [可选]**
+   - 主要放置个性化选项、配色主题切换等。MVP阶段可简化。
+
+> 若您暂时不需要“设置页面”或更复杂的跳转逻辑，可先保留入口图标，跳转到一个空白页面即可。
+
+### 2. 页面布局与元素说明
+
+下图为概念示意(文字描述)，从上至下依次排列：
+
+```
+┌─────────────────────────────────────────────────┐
+│ 顶部AppBar:                                       │
+│   < 2025年1月 >   [周1] [周2] [周3] [周4] [更多…]   │
+│   (可以左右滑动)                                   │
+│---------------------------------------------------│
+│                                                   │
+│ [时间轴列]     [事件内容列]                        │
+│ 07:15  ●----->  [闹钟图标] 起床啦！                 │
+│                                                   │
+│ 11:00  ●----->  [跑步图标] 去跑步！                │
+│         (时长1小时)                                │
+│                                                   │
+│ 12:27  ●----->  [娱乐图标] 看电影 (剩余1h17m)       │
+│                                                   │
+│ 23:00  ●----->  [月亮图标] 晚安                    │
+│                                                   │
+└─────────────────────────────────────────────────┘
+  [浮动按钮 +]  (位于右下角,点击后跳转到新增页面)
+```
+
+- **日期导航栏**：
+  - 推荐放在 **AppBar** 下方或与 AppBar 融合。可采用 `SingleChildScrollView` + `Row` 方式，或 `ListView.horizontal`。
+  - 每个日期卡片: 圆角矩形+颜色标记，点击切换当前选中日期（高亮/加边框）。
+- **时间轴**：
+  - 左侧显示时刻点，右侧是卡片或圆形图标+事件名。
+  - 不同事件可配不同颜色或图标(跑步、学习、休息、娱乐等)。
+  - 使用线段或虚线连接各事件，增添“轴”的观感。
+- **浮动按钮**：
+  - 悬浮在右下角，用来新建任务或打开更多功能面板。
+
+### 3. 高级感配色参考
+
+- **背景**：白色 (#FFFFFF) 或极浅灰 (#F8F8F8)  
+- **主色**：柔和莫兰迪粉 (#F7CAC9) / 莫兰迪蓝 (#A8BFC9) / 小麦黄(#F4E3C2) 等；或您喜欢的淡雅色系。  
+- **强调色**：柔和橙、淡蓝、或者统一的互补色以区分不同活动类型。  
+- **文本颜色**：深灰 (#333333) 或石墨黑 (#4A4A4A)，标题略深、副标题略浅。  
+- **图标**：保持简约扁平风，可以使用 Flutter 自带 `Icons.xxxx` 或自定义图标资源。
+
+### 4. 页面跳转与用户流
+
+1. **用户打开App → 进入主页面(HomeScreen)**  
+   - 默认选中当天日期，显示当天日程的时间轴。
+2. **点击浮动按钮 → 跳转到 AddTaskScreen**  
+   - 填写活动名称、时间、标签等 → 保存 → 返回主页面并刷新列表。
+3. **在主页面顶部水平日期列表中点击“周四”(例如)**  
+   - 切换主页面时间轴数据，展示“周四”的所有活动。
+4. **[可选] 点击右上角“设置”**  
+   - 跳转到 SettingsScreen，进行主题/配色的切换等。
+
+---
+
+## 二、Flutter 代码示例
+
+下面示例将包含多个文件，以便更好地演示**页面的分离与管理**。若您更习惯单文件，也可将所有内容放到 `main.dart` 中。
+
+> **项目结构示意**  
+> ```
+> lib/
+>   ├── main.dart
+>   ├── screens/
+>   │    ├── home_screen.dart
+>   │    ├── add_task_screen.dart
+>   │    └── settings_screen.dart   (可选)
+>   ├── widgets/
+>   │    └── timeline_card.dart
+>   └── models/
+>        └── task_model.dart        (如果需要定义数据结构)
+> ```
+
+### 1. `main.dart`
+这是整个应用的入口文件，包含 `MyApp` 根Widget、主题定义以及路由配置等。
+
+```dart
+// lib/main.dart
+import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
+import 'screens/add_task_screen.dart';
+import 'screens/settings_screen.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Schedly - 卡片计划',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // 1) 设置整体配色: 莫兰迪简洁风
+        primarySwatch: Colors.blueGrey,
+        scaffoldBackgroundColor: const Color(0xFFFDFDFD),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 0,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color(0xFFF5C3C2), // 柔和粉
+        ),
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/addTask': (context) => const AddTaskScreen(),
+        '/settings': (context) => const SettingsScreen(),
+      },
+    );
+  }
+}
+```
+
+- **说明**：
+  - `theme` 中可以灵活调整**主色**和**背景色**。示例里用的 `Color(0xFFF5C3C2)` 作为按钮的柔和粉色，可自行替换。
+  - `initialRoute: '/'` 表示应用启动时先进入 `HomeScreen`。
+  - `routes` 定义了从字符串路径到具体页面的映射。
+
+---
+
+### 2. `home_screen.dart`
+主页面：包含顶部日期横滑、纵向时间轴、浮动按钮等。
+
+```dart
+// lib/screens/home_screen.dart
+import 'package:flutter/material.dart';
+import '../widgets/timeline_card.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  // 示例: 模拟一周的日期(后续可动态生成或配合DateTime)
+  final List<DateTime> _dates = List.generate(7, (index) {
+    DateTime today = DateTime.now();
+    return today.add(Duration(days: index));
+  });
+
+  // 当前选中的日期
+  late DateTime _selectedDate;
+
+  // 示例: 模拟当日的日程数据
+  // 您可改为从数据库 / 网络获取
+  final List<Map<String, dynamic>> _tasks = [
+    {
+      'time': '07:15',
+      'title': '起床啦！',
+      'icon': Icons.alarm,
+      'duration': '闹钟提醒',
+      'color': Color(0xFFFFCAC2), // 柔和色
+    },
+    {
+      'time': '11:00',
+      'title': '去跑步！',
+      'icon': Icons.directions_run,
+      'duration': '1小时 (消耗 6卡路里?)',
+      'color': Color(0xFFFFD7AF),
+    },
+    {
+      'time': '12:27',
+      'title': '看电影',
+      'icon': Icons.movie,
+      'duration': '剩余 1小时17分钟',
+      'color': Color(0xFFC2D8F5),
+    },
+    {
+      'time': '23:00',
+      'title': '晚安！',
+      'icon': Icons.nightlight_round,
+      'duration': '',
+      'color': Color(0xFFD9C2F5),
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = _dates.first; // 默认选中第一天(即今天)
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          _buildDateSelector(),
+          Expanded(child: _buildTimelineList()),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // 跳转到新增页面
+          Navigator.pushNamed(context, '/addTask');
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            // 这里简单用 "2025年1月" 作为示例
+            // 也可动态拼接: "${_selectedDate.year}年${_selectedDate.month}月"
+            '2025年1月',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.keyboard_arrow_down),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.calendar_month),
+          onPressed: () {
+            // TODO: 跳转到更大范围的日历页面
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () {
+            Navigator.pushNamed(context, '/settings');
+          },
+        ),
+      ],
+    );
+  }
+
+  // 顶部水平日期选择器
+  Widget _buildDateSelector() {
+    return SizedBox(
+      height: 80,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _dates.length,
+        itemBuilder: (context, index) {
+          final date = _dates[index];
+          final isSelected = date.day == _selectedDate.day &&
+              date.month == _selectedDate.month &&
+              date.year == _selectedDate.year;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedDate = date;
+                // TODO: 根据 _selectedDate 刷新任务列表
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 60,
+              margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFFFF0EE) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: isSelected
+                    ? Border.all(color: const Color(0xFFF5C3C2), width: 2)
+                    : Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _weekdayString(date.weekday), 
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isSelected ? Colors.redAccent : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    date.day.toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.redAccent : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // 纵向时间轴
+  Widget _buildTimelineList() {
+    // 这里简单地把 _tasks 全部显示
+    // 您可根据 _selectedDate 动态加载不同任务
+    return ListView.builder(
+      itemCount: _tasks.length,
+      itemBuilder: (context, index) {
+        final task = _tasks[index];
+        return TimelineCard(
+          time: task['time'],
+          title: task['title'],
+          icon: task['icon'],
+          durationInfo: task['duration'],
+          color: task['color'],
+          isLast: index == _tasks.length - 1,
+        );
+      },
+    );
+  }
+
+  String _weekdayString(int weekday) {
+    switch (weekday) {
+      case 1:
+        return '周一';
+      case 2:
+        return '周二';
+      case 3:
+        return '周三';
+      case 4:
+        return '周四';
+      case 5:
+        return '周五';
+      case 6:
+        return '周六';
+      case 7:
+      default:
+        return '周日';
+    }
+  }
+}
+```
+
+- **主要逻辑**：
+  - `_dates` 用于模拟一周的日期。
+  - 点击每个日期卡片 `GestureDetector` 后，将 `_selectedDate` 设置为当前 date，并可根据此重新获取/过滤 `_tasks`。
+  - `_buildTimelineList()` 中使用 `TimelineCard` 自定义组件(见下文)，一项项展示当天的活动。
+
+---
+
+### 3. `timeline_card.dart`
+自定义Widget，用于渲染单条“时间轴事件”。
+
+```dart
+// lib/widgets/timeline_card.dart
+import 'package:flutter/material.dart';
+
+class TimelineCard extends StatelessWidget {
+  final String time;
+  final String title;
+  final IconData icon;
+  final String durationInfo;
+  final Color color;
+  final bool isLast;
+
+  const TimelineCard({
+    Key? key,
+    required this.time,
+    required this.title,
+    required this.icon,
+    required this.durationInfo,
+    required this.color,
+    this.isLast = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // 时间轴竖线
+        Positioned(
+          left: 32, // 控制竖线/圆点的横向位置
+          top: 0,
+          bottom: 0,
+          child: Container(
+            width: 2,
+            color: Colors.grey.shade300,
+          ),
+        ),
+        // 每条卡片的主要内容
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 时间
+              SizedBox(
+                width: 50,
+                child: Text(
+                  time,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // 圆点 + 连线
+              Column(
+                children: [
+                  // 圆点
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, size: 10, color: Colors.white),
+                  ),
+                  if (!isLast)
+                    Container(
+                      width: 2,
+                      height: 60,
+                      color: Colors.grey.shade300,
+                    ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              // 右侧信息卡片
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.shade200,
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (durationInfo.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            durationInfo,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+- **要点**：
+  - 使用 `Stack` + `Positioned` 实现左侧竖线及圆点，UI层次分明。
+  - 右侧是一个带阴影的白色卡片，展示标题+描述。
+  - `isLast` 用于控制“是否绘制下面的竖线”。
+
+---
+
+### 4. `add_task_screen.dart`
+示例的新建/编辑页面，简单包含标题、时间、图标选择等。
+
+```dart
+// lib/screens/add_task_screen.dart
+import 'package:flutter/material.dart';
+
+class AddTaskScreen extends StatefulWidget {
+  const AddTaskScreen({Key? key}) : super(key: key);
+
+  @override
+  State<AddTaskScreen> createState() => _AddTaskScreenState();
+}
+
+class _AddTaskScreenState extends State<AddTaskScreen> {
+  final TextEditingController _titleController = TextEditingController();
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 8, minute: 0);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('新建日程'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // 标题输入
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: '事件名称',
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 时间选择
+            Row(
+              children: [
+                const Text('时间: '),
+                Text(
+                  '${_selectedTime.format(context)}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: () async {
+                    final picked = await showTimePicker(
+                      context: context,
+                      initialTime: _selectedTime,
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedTime = picked;
+                      });
+                    }
+                  },
+                  child: const Text('选择时间'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // 可扩展: 选择标签/图标/颜色 ...
+            // 暂不做示例，可自行添加
+            const Spacer(),
+            // 保存按钮
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+              onPressed: () {
+                // TODO: 保存到数据库 / 共享模型
+                Navigator.pop(context);
+              },
+              child: const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+- **逻辑**：
+  - 用户可在这里输入一个名称并选择时间点。点击“保存”后，`Navigator.pop(context)` 返回主页面（随后刷新列表或执行插入操作）。
+
+---
+
+### 5. （可选）`settings_screen.dart`
+用于跳转到“设置”或“主题切换”，此处仅做占位示例。
+
+```dart
+// lib/screens/settings_screen.dart
+import 'package:flutter/material.dart';
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('设置'),
+      ),
+      body: const Center(
+        child: Text('在此添加主题切换、账号管理等设置'),
+      ),
+    );
+  }
+}
+```
+
+---
+
+## 三、使用说明与小结
+
+1. **将上述文件放入您的 Flutter 工程**  
+   - `main.dart` 放到 `lib/main.dart`；  
+   - 其余 `.dart` 文件（`home_screen.dart`, `add_task_screen.dart`, `settings_screen.dart`, `timeline_card.dart`）请放到对应的文件夹，确保 `import` 路径正确。  
+
+2. **运行项目**  
+   - 在 Android Studio 中选择某个模拟器或真机，点击“Run”。  
+   - 进入 App 后会默认显示 HomeScreen 的纵向时间轴布局，顶端可横向滑动日期。  
+   - 右下角 “+” 按钮可跳转到“新建日程”页面。  
+
+3. **自定义/拓展**  
+   - 替换 `_tasks` 数据为真实数据库或网络请求数据。  
+   - 在 `TimelineCard` 中加更多信息或子控件（如剩余时长、进度条、图标等）。  
+   - 调整配色到更符合您审美或品牌定位的柔和色系。  
+   - 增加动画、手势交互（如长按拖拽）、日程冲突检测等高级功能。  
+
+4. **配色建议**  
+   - 目前示例用到了 **柔和粉/暖橙/淡蓝** 等颜色，您可在 `home_screen.dart` 的 `_tasks` 里或 `ThemeData` 里进行修改，使用莫兰迪绿、马卡龙蓝等调和色系来保持整体高级感。  
+
+> 至此，您应该能在 Android Studio 中查看到和示例类似的**“纵向时间轴 + 顶部日期切换 + 马卡龙配色”**界面，搭配一些简单的新建日程功能。
+
+---
+
+**祝您开发顺利，若后续有更多界面或交互需求，可继续在此方案上迭代扩展！**
