@@ -1,42 +1,32 @@
 import 'package:flutter/material.dart';
-import 'core/theme/theme.dart';
-import 'features/home/home_page.dart';
-import 'features/schedule/schedule_detail_page.dart';
+import 'models/schedule.dart';
+import 'features/schedule/schedule_page.dart';
 
 void main() {
   runApp(const SchedlyApp());
 }
 
-class SchedlyApp extends StatefulWidget {
+class SchedlyApp extends StatelessWidget {
   const SchedlyApp({Key? key}) : super(key: key);
-
-  @override
-  State<SchedlyApp> createState() => _SchedlyAppState();
-}
-
-class _SchedlyAppState extends State<SchedlyApp> {
-  bool _isMorandiTheme = true;
-
-  void _toggleTheme() {
-    setState(() {
-      _isMorandiTheme = !_isMorandiTheme;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '卡片计划 Schedly',
-      theme: _isMorandiTheme ? AppTheme.morandiTheme : AppTheme.macaronTheme,
+      title: 'Schedly',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => HomePage(
-              toggleTheme: _toggleTheme,
-              isMorandiTheme: _isMorandiTheme,
-            ),
-        '/scheduleDetail': (context) => const ScheduleDetailPage(),
-      },
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Colors.blue,
+        ),
+      ),
+      home: const SchedulePage(),
     );
   }
 }

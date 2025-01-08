@@ -1,234 +1,201 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../schedule/schedule_detail_page.dart';
+import '../../widgets/timeline_card.dart';
 
 class HomePage extends StatefulWidget {
-  final VoidCallback toggleTheme;
-  final bool isMorandiTheme;
-
-  const HomePage({
-    Key? key,
-    required this.toggleTheme,
-    required this.isMorandiTheme,
-  }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, dynamic>> _schedules = [
+  final List<DateTime> _dates = List.generate(7, (index) {
+    DateTime today = DateTime.now();
+    return today.add(Duration(days: index));
+  });
+
+  late DateTime _selectedDate;
+
+  final List<Map<String, dynamic>> _tasks = [
     {
       'time': '07:15',
       'title': '起床啦！',
       'icon': Icons.alarm,
-      'color': Color(0xFFE2C4C0), // 莫兰迪粉
-      'status': '未开始',
+      'duration': '闹钟提醒',
+      'color': Color(0xFFFFCAC2),
     },
     {
-      'time': '11:00 - 12:00',
+      'time': '11:00',
       'title': '去跑步！',
       'icon': Icons.directions_run,
-      'color': Color(0xFFA7BBC7), // 莫兰迪蓝
-      'status': '进行中',
+      'duration': '1小时 (消耗 6卡路里?)',
+      'color': Color(0xFFFFD7AF),
     },
     {
-      'time': '13:00 - 15:00',
+      'time': '12:27',
       'title': '看电影',
       'icon': Icons.movie,
-      'color': Color(0xFFC7DAD4), // 莫兰迪绿
-      'status': '已完成',
+      'duration': '剩余 1小时17分钟',
+      'color': Color(0xFFC2D8F5),
     },
     {
       'time': '23:00',
-      'title': '晚安！',
+      'title': '晚安',
       'icon': Icons.nightlight_round,
-      'color': Color(0xFFE0BBE4), // 淡紫
-      'status': '未开始',
-    }
+      'duration': '',
+      'color': Color(0xFFD9C2F5),
+    },
   ];
 
-  DateTime _selectedDate = DateTime.now();
-  final DateFormat _dateFormat = DateFormat('yyyy年MM月dd日');
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = _dates.first;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _buildDateSelector(),
-        centerTitle: false,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_today),
-            onPressed: _showDatePicker,
-          ),
-          IconButton(
-            icon: Icon(widget.isMorandiTheme 
-                ? Icons.color_lens 
-                : Icons.color_lens_outlined),
-            onPressed: widget.toggleTheme,
-          ),
+      appBar: _buildAppBar(),
+      body: Column(
+        children: [
+          _buildDateSelector(),
+          Expanded(child: _buildTimelineList()),
         ],
       ),
-      body: _buildTimeline(),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).primaryColor,
         onPressed: () {
-          Navigator.pushNamed(context, '/scheduleDetail');
+          // TODO: Navigate to add task screen
         },
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildDateSelector() {
-    return Row(
-      children: [
-        IconButton(
-          icon: Icon(Icons.chevron_left),
-          onPressed: _previousDay,
-        ),
-        Text(
-          _dateFormat.format(_selectedDate),
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).appBarTheme.foregroundColor,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${_selectedDate.year}年${_selectedDate.month}月',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          const SizedBox(width: 8),
+          const Icon(Icons.keyboard_arrow_down),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.calendar_month),
+          onPressed: () {
+            // TODO: Show calendar view
+          },
         ),
         IconButton(
-          icon: Icon(Icons.chevron_right),
-          onPressed: _nextDay,
+          icon: const Icon(Icons.settings),
+          onPressed: () {
+            // TODO: Navigate to settings
+          },
         ),
       ],
     );
   }
 
-  Widget _buildTimeline() {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      itemCount: _schedules.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 20),
-      itemBuilder: (context, index) {
-        final schedule = _schedules[index];
-        return _buildScheduleCard(schedule);
-      },
-    );
-  }
+  Widget _buildDateSelector() {
+    return SizedBox(
+      height: 80,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _dates.length,
+        itemBuilder: (context, index) {
+          final date = _dates[index];
+          final isSelected = date.day == _selectedDate.day &&
+              date.month == _selectedDate.month &&
+              date.year == _selectedDate.year;
 
-  Widget _buildScheduleCard(Map<String, dynamic> schedule) {
-    return InkWell(
-      onTap: () {
-        Navigator.pushNamed(context, '/scheduleDetail', arguments: schedule);
-      },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 60,
-            child: Text(
-              schedule['time'],
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: schedule['color'],
-                  shape: BoxShape.circle,
-                ),
-              ),
-              Container(
-                width: 2,
-                height: 60,
-                color: Colors.grey.withOpacity(0.3),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedDate = date;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 60,
+              margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
+                color: isSelected ? const Color(0xFFFFF0EE) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 6,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                border: isSelected
+                    ? Border.all(color: const Color(0xFFF5C3C2), width: 2)
+                    : Border.all(color: Colors.grey.shade300),
               ),
-              child: Row(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(schedule['icon'], color: schedule['color']),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          schedule['title'],
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          schedule['status'],
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+                  Text(
+                    _weekdayString(date.weekday),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isSelected ? Colors.redAccent : Colors.grey,
                     ),
                   ),
-                  if (schedule['status'] == '进行中')
-                    Icon(Icons.access_time, color: schedule['color'], size: 16),
+                  const SizedBox(height: 4),
+                  Text(
+                    date.day.toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.redAccent : Colors.black87,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  void _previousDay() {
-    setState(() {
-      _selectedDate = _selectedDate.subtract(Duration(days: 1));
-    });
-  }
-
-  void _nextDay() {
-    setState(() {
-      _selectedDate = _selectedDate.add(Duration(days: 1));
-    });
-  }
-
-  Future<void> _showDatePicker() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+  Widget _buildTimelineList() {
+    return ListView.builder(
+      itemCount: _tasks.length,
+      itemBuilder: (context, index) {
+        final task = _tasks[index];
+        return TimelineCard(
+          time: task['time'],
+          title: task['title'],
+          icon: task['icon'],
+          durationInfo: task['duration'],
+          color: task['color'],
+          isLast: index == _tasks.length - 1,
+        );
+      },
     );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+  }
+
+  String _weekdayString(int weekday) {
+    switch (weekday) {
+      case 1:
+        return '周一';
+      case 2:
+        return '周二';
+      case 3:
+        return '周三';
+      case 4:
+        return '周四';
+      case 5:
+        return '周五';
+      case 6:
+        return '周六';
+      case 7:
+      default:
+        return '周日';
     }
   }
 }

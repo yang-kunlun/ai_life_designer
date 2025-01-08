@@ -1,28 +1,22 @@
 class Schedule {
   final String id;
   final String title;
-  final String description;
   final DateTime startTime;
   final DateTime endTime;
-  final bool isAllDay;
   final String location;
-  final List<String> participants;
-  final String status; // 'pending', 'confirmed', 'cancelled'
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final bool notify;
+  final String repeat;
+  final String remarks;
 
   Schedule({
     required this.id,
     required this.title,
-    required this.description,
     required this.startTime,
     required this.endTime,
-    this.isAllDay = false,
-    this.location = '',
-    this.participants = const [],
-    this.status = 'pending',
-    required this.createdAt,
-    required this.updatedAt,
+    required this.location,
+    required this.notify,
+    required this.repeat,
+    required this.remarks,
   });
 
   // 从JSON创建Schedule对象
@@ -30,18 +24,12 @@ class Schedule {
     return Schedule(
       id: json['id'] as String,
       title: json['title'] as String,
-      description: json['description'] as String,
       startTime: DateTime.parse(json['startTime'] as String),
       endTime: DateTime.parse(json['endTime'] as String),
-      isAllDay: json['isAllDay'] as bool? ?? false,
-      location: json['location'] as String? ?? '',
-      participants: (json['participants'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          [],
-      status: json['status'] as String? ?? 'pending',
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      location: json['location'] as String,
+      notify: json['notify'] as bool,
+      repeat: json['repeat'] as String,
+      remarks: json['remarks'] as String,
     );
   }
 
@@ -50,15 +38,12 @@ class Schedule {
     return {
       'id': id,
       'title': title,
-      'description': description,
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
-      'isAllDay': isAllDay,
       'location': location,
-      'participants': participants,
-      'status': status,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'notify': notify,
+      'repeat': repeat,
+      'remarks': remarks,
     };
   }
 
@@ -66,28 +51,22 @@ class Schedule {
   Schedule copyWith({
     String? id,
     String? title,
-    String? description,
     DateTime? startTime,
     DateTime? endTime,
-    bool? isAllDay,
     String? location,
-    List<String>? participants,
-    String? status,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    bool? notify,
+    String? repeat,
+    String? remarks,
   }) {
     return Schedule(
       id: id ?? this.id,
       title: title ?? this.title,
-      description: description ?? this.description,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      isAllDay: isAllDay ?? this.isAllDay,
       location: location ?? this.location,
-      participants: participants ?? this.participants,
-      status: status ?? this.status,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      notify: notify ?? this.notify,
+      repeat: repeat ?? this.repeat,
+      remarks: remarks ?? this.remarks,
     );
   }
 }
