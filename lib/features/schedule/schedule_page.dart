@@ -3,6 +3,7 @@ import '../../models/schedule.dart';
 import '../../widgets/timeline_card.dart';
 import 'create_schedule_recommend.dart';
 import 'create_schedule_edit.dart';
+import '../../core/theme/design_system.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({Key? key}) : super(key: key);
@@ -62,7 +63,7 @@ class _SchedulePageState extends State<SchedulePage> {
             final editedSchedule = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CreateScheduleEditPage(schedule: schedule),
+                builder: (context) => CreateScheduleEdit(initialSchedule: schedule),
               ),
             );
             return editedSchedule;
@@ -80,13 +81,16 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('卡片计划'),
-        backgroundColor: Colors.white,
+        title: const Text('卡片计划', style: DesignSystem.heading2),
+        backgroundColor: DesignSystem.backgroundLight,
         elevation: 0,
-        foregroundColor: Colors.black,
+        foregroundColor: DesignSystem.textPrimary,
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(
+          vertical: DesignSystem.spacingM,
+          horizontal: DesignSystem.spacingM,
+        ),
         itemCount: schedules.length,
         itemBuilder: (context, index) {
           final schedule = schedules[index];
@@ -98,9 +102,23 @@ class _SchedulePageState extends State<SchedulePage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openCreateSchedule('新日程'),
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'demo',
+            mini: true,
+            backgroundColor: DesignSystem.primaryColor,
+            onPressed: () => Navigator.pushNamed(context, '/demo'),
+            child: const Icon(Icons.visibility, color: Colors.white),
+          ),
+          const SizedBox(height: DesignSystem.spacingM),
+          FloatingActionButton(
+            backgroundColor: DesignSystem.primaryColor,
+            onPressed: () => _openCreateSchedule('新日程'),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ],
       ),
     );
   }

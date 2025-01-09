@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // 马卡龙风格主题
-  static final ThemeData macaronTheme = ThemeData(
-    primarySwatch: createMaterialColor(const Color(0xFFFFDDE1)), // 淡粉
-    scaffoldBackgroundColor: const Color(0xFFF2ECE3), // 米白
+  // 科技感主题
+  static final ThemeData techTheme = ThemeData(
+    primarySwatch: createMaterialColor(const Color(0xFF2196F3)), // 科技蓝
+    scaffoldBackgroundColor: const Color(0xFFF5F5F5), // 浅灰
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFFFFDDE1),
+      backgroundColor: Colors.white,
       foregroundColor: Colors.black87,
-      elevation: 0,
-      centerTitle: false,
+      elevation: 1,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFFFFC2C6), // 稍深的粉色
+      backgroundColor: Color(0xFF2196F3),
       foregroundColor: Colors.white,
     ),
     textTheme: const TextTheme(
@@ -22,41 +27,27 @@ class AppTheme {
         fontWeight: FontWeight.bold,
         color: Colors.black87,
       ),
-    ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-    ),
-  );
-
-  // 莫兰迪风格主题
-  static final ThemeData morandiTheme = ThemeData(
-    primarySwatch: createMaterialColor(const Color(0xFFA7BBC7)), // 莫兰迪蓝
-    scaffoldBackgroundColor: const Color(0xFFF2ECE3), // 米白
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFFA7BBC7),
-      foregroundColor: Colors.white,
-      elevation: 0,
-      centerTitle: false,
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFFA7BBC7),
-      foregroundColor: Colors.white,
-    ),
-    textTheme: const TextTheme(
-      bodyMedium: TextStyle(color: Colors.black87),
-      titleLarge: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
+      headlineSmall: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
       ),
     ),
     cardTheme: CardTheme(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2196F3)),
       ),
     ),
   );

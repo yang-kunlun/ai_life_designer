@@ -1,201 +1,100 @@
 import 'package:flutter/material.dart';
+import '../schedule/schedule_page.dart';
+import '../schedule/create_schedule_edit.dart';
 import '../../widgets/timeline_card.dart';
+import '../../models/schedule.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<DateTime> _dates = List.generate(7, (index) {
-    DateTime today = DateTime.now();
-    return today.add(Duration(days: index));
-  });
-
-  late DateTime _selectedDate;
-
-  final List<Map<String, dynamic>> _tasks = [
-    {
-      'time': '07:15',
-      'title': '起床啦！',
-      'icon': Icons.alarm,
-      'duration': '闹钟提醒',
-      'color': Color(0xFFFFCAC2),
-    },
-    {
-      'time': '11:00',
-      'title': '去跑步！',
-      'icon': Icons.directions_run,
-      'duration': '1小时 (消耗 6卡路里?)',
-      'color': Color(0xFFFFD7AF),
-    },
-    {
-      'time': '12:27',
-      'title': '看电影',
-      'icon': Icons.movie,
-      'duration': '剩余 1小时17分钟',
-      'color': Color(0xFFC2D8F5),
-    },
-    {
-      'time': '23:00',
-      'title': '晚安',
-      'icon': Icons.nightlight_round,
-      'duration': '',
-      'color': Color(0xFFD9C2F5),
-    },
+  final List<Schedule> schedules = [
+    Schedule(
+      id: '1',
+      title: '团队会议',
+      startTime: DateTime.now().add(Duration(hours: 2)),
+      endTime: DateTime.now().add(Duration(hours: 3)),
+      location: '会议室A',
+      remarks: '讨论Q2产品规划',
+      notify: true,
+      repeat: '不重复',
+    ),
+    Schedule(
+      id: '2',
+      title: '产品演示',
+      startTime: DateTime.now().add(Duration(days: 1)),
+      endTime: DateTime.now().add(Duration(days: 1, hours: 2)),
+      location: '线上会议',
+      remarks: '准备演示材料',
+      notify: true,
+      repeat: '每周重复',
+    ),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDate = _dates.first;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _buildDateSelector(),
-          Expanded(child: _buildTimelineList()),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navigate to add task screen
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${_selectedDate.year}年${_selectedDate.month}月',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Icon(Icons.keyboard_arrow_down),
-        ],
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.calendar_month),
-          onPressed: () {
-            // TODO: Show calendar view
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () {
-            // TODO: Navigate to settings
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateSelector() {
-    return SizedBox(
-      height: 80,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _dates.length,
-        itemBuilder: (context, index) {
-          final date = _dates[index];
-          final isSelected = date.day == _selectedDate.day &&
-              date.month == _selectedDate.month &&
-              date.year == _selectedDate.year;
-
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedDate = date;
-              });
+      appBar: AppBar(
+        title: Text('今日日程'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SchedulePage()),
+              );
             },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 60,
-              margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFFFF0EE) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: isSelected
-                    ? Border.all(color: const Color(0xFFF5C3C2), width: 2)
-                    : Border.all(color: Colors.grey.shade300),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _weekdayString(date.weekday),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isSelected ? Colors.redAccent : Colors.grey,
-                    ),
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        padding: EdgeInsets.symmetric(vertical: 8.0),
+        itemCount: schedules.length,
+        itemBuilder: (context, index) {
+          return TimelineCard(
+            schedule: schedules[index],
+            onEdit: (schedule) async {
+              final updatedSchedule = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateScheduleEdit(
+                    initialSchedule: schedule,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date.day.toString(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.redAccent : Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+              if (updatedSchedule != null) {
+                setState(() {
+                  final index = schedules.indexWhere((s) => s.id == schedule.id);
+                  if (index != -1) {
+                    schedules[index] = updatedSchedule;
+                  }
+                });
+              }
+            },
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          final newSchedule = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateScheduleEdit(),
+            ),
+          );
+          if (newSchedule != null) {
+            setState(() {
+              schedules.add(newSchedule);
+            });
+          }
+        },
+      ),
     );
-  }
-
-  Widget _buildTimelineList() {
-    return ListView.builder(
-      itemCount: _tasks.length,
-      itemBuilder: (context, index) {
-        final task = _tasks[index];
-        return TimelineCard(
-          time: task['time'],
-          title: task['title'],
-          icon: task['icon'],
-          durationInfo: task['duration'],
-          color: task['color'],
-          isLast: index == _tasks.length - 1,
-        );
-      },
-    );
-  }
-
-  String _weekdayString(int weekday) {
-    switch (weekday) {
-      case 1:
-        return '周一';
-      case 2:
-        return '周二';
-      case 3:
-        return '周三';
-      case 4:
-        return '周四';
-      case 5:
-        return '周五';
-      case 6:
-        return '周六';
-      case 7:
-      default:
-        return '周日';
-    }
   }
 }

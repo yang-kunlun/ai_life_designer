@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/schedule.dart';
 import 'features/schedule/schedule_page.dart';
+import 'features/schedule/timeline_demo_page.dart';
 
 void main() {
   runApp(const SchedlyApp());
@@ -27,6 +28,9 @@ class SchedlyApp extends StatelessWidget {
         ),
       ),
       home: const SchedulePage(),
+      routes: {
+        '/demo': (context) => const TimelineDemoPage(),
+      },
     );
   }
 }
